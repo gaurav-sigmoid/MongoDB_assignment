@@ -1,3 +1,6 @@
+# ---------------------------------------------
+# Find top `N` movies for each genre with the highest IMDB rating, assuming n = 10
+
 import datetime
 import json
 from bson import ObjectId
