@@ -9,12 +9,49 @@ client = pymongo.MongoClient()
 mydb = client["mydatabase"]
 mycol = mydb['movies']
 
-res = mycol.aggregate([
-    {"$unwind": "$genres"},
-    {"$project": {"rating": "$imdb.rating","genres": "$genres", "title": "$title"}},
-    {"$group": {"_id": {"genres": "$genres", "max_rating": {"$max": "$rating"}, "title": {"first": "$title"}}}},
-    {"$sort": {"_id.max_rating": -1}},
-    {"$limit": 10}
+
+res= mycol.aggregate([
+        {
+            '$unwind': {
+                'path': '$genres',
+                'preserveNullAndEmptyArrays': False
+            }
+        }, {
+            '$project': {
+                'title': 1,
+                'rating': '$imdb.rating',
+                'genres': 1
+            }
+        }, {
+            '$sort': {
+                'rating': -1
+            }
+        }, {
+            '$match': {
+                'rating': {
+                    '$ne': ''
+                }
+            }
+        }, {
+            '$group': {
+                '_id': '$genres',
+                'movies': {
+                    '$push': {
+                        'movie': '$title',
+                        'rating': '$rating'
+                    }
+                }
+            }
+        }, {
+            '$project': {
+                'movies': {
+                    '$slice': [
+                        '$movies', 0, 10
+                    ]
+                }
+            }
+        }
 ])
+
 for i in res:
     print(i)
